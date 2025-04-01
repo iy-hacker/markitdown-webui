@@ -1,35 +1,74 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { DropZone } from './components/DropZone';
+import { Header } from './components/Header';
+import { ResultList } from './components/ResultList';
+import { TaskQueue } from './components/TaskQueue';
+import { useTaskQueue } from './hooks/useTaskQueue';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+  const { 
+    tasks, 
+    loading, 
+    error, 
+    fetchTasks, 
+    deleteTask, 
+    getMarkdown, 
+    downloadMarkdown, 
+    progress 
+  } = useTaskQueue();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="app">
+      <Header title="Markitdown WebUI" />
+      
+      <main className="main">
+        {/* ファイル/URL入力セクション */}
+        <div className="card">
+          <div className="section-header">
+            <h2 className="section-title">ファイルまたはURLを追加</h2>
+          </div>
+          <div className="card-body">
+            <DropZone onUploadSuccess={fetchTasks} />
+          </div>
+        </div>
+        
+        {/* タスクキュー */}
+        {loading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p className="loading-text">タスク情報を読み込み中...</p>
+          </div>
+        ) : (
+          <TaskQueue 
+            tasks={tasks} 
+            progress={progress}
+            onDelete={deleteTask}
+            onDownload={downloadMarkdown}
+          />
+        )}
+        
+        {/* 変換結果 */}
+        <ResultList 
+          tasks={tasks}
+          onPreview={getMarkdown}
+          onDownload={downloadMarkdown}
+        />
+        
+        {/* エラー表示 */}
+        {error && (
+          <div className="error-alert">
+            {error}
+          </div>
+        )}
+      </main>
+      
+      <footer className="footer">
+        <div className="container">
+          <p className="footer-text">Markitdown WebUI - 2025</p>
+        </div>
+      </footer>
+    </div>
+  );
+};
 
-export default App
+export default App;
