@@ -13,6 +13,8 @@ dist/
 .DS_Store
 npm-debug.log*
 
-backend/app/outputs/*
-backend/app/uploads/*
-backend/app/temp/*
+old/*
+.venv/*
+temp/*
+output/*
+site_image/*

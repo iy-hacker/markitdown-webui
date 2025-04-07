@@ -1,0 +1,562 @@
+/* ベーススタイル */
+:root {
+    --primary: #0078d4;
+    --primary-dark: #106ebe;
+    --primary-light: #2b88d8;
+    --success: #107c10;
+    --success-dark: #0b6a0b;
+    --warning: #d83b01;
+    --danger: #a80000;
+    --danger-dark: #8a0000;
+    --light: #f3f2f1;
+    --dark: #201f1e;
+    --gray: #605e5c;
+    --gray-light: #dadada;
+    --border-color: #edebe9;
+    --border-radius: 4px;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --container-width: 1440px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* ダークモード用の変数 */
+    --bg-color: #faf9f8;
+    --bg-light-color: var(--light);
+    --text-color: var(--dark);
+    --card-bg: white;
+    --header-bg: var(--primary);
+    --header-text: white;
+    --footer-bg: white;
+    }
+    
+    /* ダークモード */
+    body.dark-mode {
+    --bg-color: #1e1e1e;
+    --bg-light-color: #0c0c0c;
+    --text-color: #f3f2f1;
+    --card-bg: #2d2d2d;
+    --header-bg: #0c0c0c;
+    --header-text: #f3f2f1;
+    --border-color: #3d3d3d;
+    --footer-bg: #0c0c0c;
+    }
+    
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    html, body {
+    height: 100%;
+    }
+    
+    body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    font-size: 16px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    .container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+    }
+    
+    /* ヘッダー */
+    .header {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    box-shadow: var(--box-shadow);
+    transition: background-color 0.3s ease;
+    }
+    
+    .header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    }
+    
+    .header-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    }
+    
+    .header-icon {
+    width: 32px;
+    height: 32px;
+    }
+    
+    .header-title {
+    font-size: 24px;
+    font-weight: 600;
+    }
+    
+    /* ハンバーガーメニュー */
+    .hamburger-menu {
+    position: relative;
+    }
+    
+    .hamburger-button {
+    background: none;
+    border: none;
+    color: var(--header-text);
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    font-size: 24px;
+    }
+    
+    .menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: var(--spacing-md);
+    z-index: 100;
+    min-width: 200px;
+    display: none;
+    }
+    
+    .menu-dropdown.active {
+    display: block;
+    }
+    
+    .menu-item {
+    padding: var(--spacing-sm) 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-color);
+    }
+    
+    .menu-item:hover {
+    color: var(--primary);
+    }
+    
+    /* メインコンテンツ */
+    .app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    }
+    
+    .main {
+    flex: 1;
+    max-width: var(--container-width);
+    margin: 0 10vw;
+    padding: var(--spacing-lg) var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    }
+    
+    /* アコーディオン */
+    .accordion {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+    }
+    
+    .accordion-header {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-light-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+    
+    .accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    }
+    
+    .accordion-body.active {
+    max-height: 1000px;
+    }
+    
+    .accordion-content {
+    padding: var(--spacing-md);
+    }
+    
+    .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    }
+    
+    .accordion-icon {
+    transition: transform 0.3s ease;
+    }
+    
+    .accordion-icon.active {
+    transform: rotate(180deg);
+    }
+    
+    /* カード */
+    .card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+    }
+    
+    /* ドロップゾーン */
+    .dropzone-container {
+    padding: var(--spacing-md) 0;
+    }
+    
+    .drop-area {
+    border: 2px dashed var(--gray-light);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xl);
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    margin-bottom: var(--spacing-md);
+    }
+    
+    .drop-area.active {
+    border-color: var(--primary);
+    background-color: rgba(0, 120, 212, 0.05);
+    }
+    
+    .drop-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--spacing-md);
+    color: var(--gray);
+    }
+    
+    .drop-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+    }
+    
+    .drop-subtitle {
+    font-size: 14px;
+    color: var(--gray);
+    }
+    
+    /* URL入力フォーム */
+    .url-form-container {
+    margin-top: var(--spacing-lg);
+    }
+    
+    .url-form {
+    display: flex;
+    }
+    
+    .url-input {
+    flex: 1;
+    padding: 10px var(--spacing-md);
+    border: 1px solid var(--gray-light);
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    font-size: 16px;
+    outline: none;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    }
+    
+    .url-input:focus {
+    border-color: var(--primary);
+    }
+    
+    .url-form-help {
+    font-size: 12px;
+    color: var(--gray);
+    margin-top: var(--spacing-xs);
+    }
+    
+    /* フォルダ選択ボタン */
+    .folder-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    }
+    
+    .folder-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--bg-light-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s;
+    color: var(--text-color);
+    }
+    
+    .folder-button:hover {
+    background-color: var(--primary-light);
+    color: white;
+    }
+    
+    .folder-button.active {
+    background-color: var(--primary);
+    color: white;
+    }
+    
+    .folder-edit {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.3s;
+    }
+    
+    .folder-edit:hover {
+    opacity: 1;
+    }
+    
+    .add-folder-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: var(--bg-light-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 24px;
+    transition: all 0.3s;
+    }
+    
+    .add-folder-button:hover {
+    background-color: var(--primary-light);
+    color: white;
+    }
+    
+    /* ボタン */
+    .btn {
+    display: inline-block;
+    padding: 10px var(--spacing-md);
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    }
+    
+    .btn-sm {
+    padding: 6px var(--spacing-md);
+    font-size: 14px;
+    }
+    
+    .btn-primary {
+    background-color: var(--primary);
+    color: white;
+    }
+    
+    .btn-primary:hover {
+    background-color: var(--primary-dark);
+    }
+    
+    .btn-secondary {
+    background-color: var(--bg-light-color);
+    color: var(--dark);
+    border: 1px solid var(--gray-light);
+    }
+    
+    .btn-secondary:hover {
+    background-color: #e5e5e5;
+    }
+    
+    .btn-danger {
+    background-color: var(--danger);
+    color: white;
+    }
+    
+    .btn-danger:hover {
+    background-color: var(--danger-dark);
+    }
+    
+    /* タスクキュー */
+    .task-queue-container {
+    overflow-x: auto;
+    }
+    
+    .task-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+    }
+    
+    .task-table th,
+    .task-table td {
+    padding: var(--spacing-sm);
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    }
+    
+    .task-table th {
+    background-color: var(--bg-light-color);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    }
+    
+    .task-table tbody tr {
+    transition: background-color 0.3s ease;
+    }
+    
+    .task-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .status-waiting {
+    color: var(--gray);
+    }
+    
+    .status-processing {
+    color: var(--primary);
+    }
+    
+    .status-success {
+    color: var(--success);
+    }
+    
+    .status-error {
+    color: var(--danger);
+    }
+    
+    /* レイアウト切り替え */
+    .main.horizontal-layout {
+    flex-direction: row;
+    flex-wrap: wrap;
+    }
+    
+    .main.horizontal-layout .accordion {
+    flex: 1 1 calc(50% - var(--spacing-lg));
+    min-width: 500px;
+    }
+    
+    /* フッター */
+    .footer {
+    background-color: var(--footer-bg);
+    border-top: 1px solid var(--border-color);
+    padding: var(--spacing-md) 0;
+    transition: background-color 0.3s ease;
+    }
+    
+    .footer-text {
+    text-align: center;
+    color: var(--gray);
+    font-size: 14px;
+    }
+    
+    /* モーダル */
+    .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--spacing-md);
+    }
+    
+    .modal-container {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+    }
+    
+    .modal-header {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+    
+    .modal-title {
+    font-weight: 600;
+    color: var(--text-color);
+    }
+    
+    .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--gray);
+    }
+    
+    .modal-body {
+    padding: var(--spacing-md);
+    overflow-y: auto;
+    flex: 1;
+    }
+    
+    .modal-footer {
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    }
+    
+    .form-group {
+    margin-bottom: var(--spacing-md);
+    }
+    
+    .form-label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    color: var(--text-color);
+    }
+    
+    .form-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    }
+    
+    /* レスポンシブ対応 */
+    @media (max-width: 768px) {
+    .main.horizontal-layout {
+        flex-direction: column;
+    }
+    
+    .main.horizontal-layout .accordion {
+        width: 100%;
+    }
+    }
