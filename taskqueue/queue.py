@@ -272,6 +272,13 @@ class TaskQueue:
             
             task.updated_at = datetime.now()
             self.logger.debug(f"タスク完了: {task_id} - 状態: {task.status}")
+            
+            # タスクにコールバックがある場合は実行
+            if task.callback:
+                try:
+                    task.callback(result)
+                except Exception as e:
+                    self.logger.exception(f"タスクコールバック実行中のエラー: {str(e)}")
         
         except Exception as e:
             # 想定外のエラー

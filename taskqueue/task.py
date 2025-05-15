@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Any, Callable, Dict, Generic, Optional, TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -35,6 +35,7 @@ class Task(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.now)
     error_message: Optional[str] = None
     result: Optional[Any] = None
+    callback: Optional[Callable[[TaskResult], None]] = None
     
     class Config:
         arbitrary_types_allowed = True

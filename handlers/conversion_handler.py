@@ -5,11 +5,12 @@ import logging
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from urllib.parse import urlparse
 
 # Markitdownライブラリをインポート
 from markitdown import MarkItDown
+
 # taskqueueモジュールからインポート
 from taskqueue import Task, TaskResult
 
@@ -104,8 +105,19 @@ def handle_conversion_task(task: Task) -> TaskResult:
         
         logger.info(f"変換完了: {output_path}")
         
+        # 変換元のファイルを削除
+        if source_type == 'file' and os.path.exists(source_path):
+            os.remove(source_path)
+            logger.info(f"元ファイル削除: {source_path}")
+        
+        # 相対パスの作成（Webアクセス用）
+        # output_dir から見た相対パスに変換
+        from config import OUTPUT_DIR
+        relative_output_path = os.path.relpath(output_path, OUTPUT_DIR).replace('\\', '/')
+        
+        # タスク結果を返す
         return TaskResult.success({
-            'output_path': output_path,
+            'output_path': relative_output_path,
             'output_filename': output_filename
         })
     

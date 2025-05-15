@@ -1,0 +1,6 @@
+flask==2.3.3
+pydantic==1.10.7
+beautifulsoup4==4.12.2
+uvicorn==0.23.2
+asgiref==3.7.2
+markitdown[all]==0.1.1

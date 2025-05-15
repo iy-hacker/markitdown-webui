@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import shutil
@@ -13,7 +14,22 @@ from config import (ALLOWED_EXTENSIONS, DEFAULT_FOLDERS, OUTPUT_DIR, TEMP_DIR,
                     Config)
 from handlers.conversion_handler import handle_conversion_task
 # taskqueueモジュールとハンドラのインポート
-from taskqueue import Task, TaskStatus, create_queue
+from taskqueue import Task, TaskResult, TaskStatus, create_queue
+
+
+def parse_arguments():
+    """コマンドライン引数をパースする関数"""
+    parser = argparse.ArgumentParser(description='Markitdown WebUI - ファイルやURLをMarkdownに変換するWebアプリケーション')
+    parser.add_argument('output_path', nargs='?', default=None, 
+                        help='変換ファイルの保存先ディレクトリのパス (デフォルト: 設定ファイルで指定されたパス)')
+    parser.add_argument('-p', '--port', type=int, default=5000,
+                        help='サーバーが使用するポート (デフォルト: 5000)')
+    parser.add_argument('-H', '--host', default='0.0.0.0',
+                        help='サーバーがリクエストを受け付けるホスト (デフォルト: 0.0.0.0)')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='デバッグモードで実行')
+    
+    return parser.parse_args()
 
 # Flaskアプリケーションの初期化
 app = Flask(__name__)
@@ -26,20 +42,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 出力ディレクトリの作成
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(TEMP_DIR, exist_ok=True)
-
-# デフォルトフォルダの作成
-for folder in DEFAULT_FOLDERS:
-    folder_path = os.path.join(OUTPUT_DIR, folder)
-    os.makedirs(folder_path, exist_ok=True)
-
-# タスクキューの初期化
-task_queue = create_queue(default_max_workers=4, auto_start=True, logger=logger)
-
-# 変換タスクハンドラの登録
-task_queue.register_handler('conversion', handle_conversion_task)
+# 変換タスクハンドラの登録用関数
+def setup_application(custom_output_dir=None):
+    """アプリケーションのセットアップを行う関数"""
+    global OUTPUT_DIR, task_queue, tasks_store
+    
+    # カスタム出力ディレクトリが指定された場合、グローバルの出力ディレクトリを更新
+    if custom_output_dir:
+        OUTPUT_DIR = os.path.abspath(custom_output_dir)
+        logger.info(f"カスタム出力ディレクトリが指定されました: {OUTPUT_DIR}")
+    
+    # 出力ディレクトリの作成
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    
+    # デフォルトフォルダの作成
+    for folder in DEFAULT_FOLDERS:
+        folder_path = os.path.join(OUTPUT_DIR, folder)
+        os.makedirs(folder_path, exist_ok=True)
+    
+    # タスクキューの初期化
+    task_queue = create_queue(default_max_workers=4, auto_start=True, logger=logger)
+    
+    # 変換タスクハンドラの登録
+    task_queue.register_handler('conversion', handle_conversion_task)
+    
+    # タスクのストレージ（本番ではDBにするべき）
+    tasks_store = {}
+    
+    logger.info("アプリケーションのセットアップが完了しました")
 
 # タスクのストレージ（本番ではDBにするべき）
 tasks_store: Dict[str, Dict[str, Any]] = {}
@@ -61,7 +92,7 @@ def index():
     """メインページの表示"""
     # フォルダ一覧を取得してテンプレートにレンダリング
     folders = get_folders()
-    return render_template('index.html', folders=folders)
+    return render_template('index.html', folders=folders, output_dir=OUTPUT_DIR)
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -117,6 +148,32 @@ def upload_file():
         'folder': folder
     }
     
+    # タスクのコールバック設定
+    def task_callback(task_result):
+        if task_result and task_result.success and task_result.result:
+            try:
+                # 結果が成功でかつ出力パスがある場合
+                # task_result.result は辞書型であることを確認
+                if isinstance(task_result.result, dict) and 'output_path' in task_result.result:
+                    output_path = task_result.result['output_path']
+                    
+                    # すでに相対パスの場合は変換不要
+                    if not os.path.isabs(output_path):
+                        relative_path = output_path
+                    else:
+                        # 絶対パスの場合は相対パスに変換
+                        relative_path = os.path.relpath(output_path, OUTPUT_DIR).replace('\\', '/')
+                    
+                    # タスク情報に出力パスを追加
+                    if task_id in tasks_store:
+                        tasks_store[task_id]['output_path'] = relative_path
+                        logger.info(f"タスク {task_id} の出力パスを設定: {relative_path}")
+            except Exception as e:
+                logger.error(f"タスク結果処理エラー: {str(e)}")
+    
+    # コールバックを設定
+    task.callback = task_callback
+    
     return jsonify({
         'task_id': task_id,
         'status': TaskStatus.WAITING,
@@ -162,6 +219,32 @@ def process_url():
         'status': TaskStatus.WAITING,
         'folder': folder
     }
+    
+    # タスクのコールバック設定
+    def task_callback(task_result):
+        if task_result and task_result.success and task_result.result:
+            try:
+                # 結果が成功でかつ出力パスがある場合
+                # task_result.result は辞書型であることを確認
+                if isinstance(task_result.result, dict) and 'output_path' in task_result.result:
+                    output_path = task_result.result['output_path']
+                    
+                    # すでに相対パスの場合は変換不要
+                    if not os.path.isabs(output_path):
+                        relative_path = output_path
+                    else:
+                        # 絶対パスの場合は相対パスに変換
+                        relative_path = os.path.relpath(output_path, OUTPUT_DIR).replace('\\', '/')
+                    
+                    # タスク情報に出力パスを追加
+                    if task_id in tasks_store:
+                        tasks_store[task_id]['output_path'] = relative_path
+                        logger.info(f"タスク {task_id} の出力パスを設定: {relative_path}")
+            except Exception as e:
+                logger.error(f"タスク結果処理エラー: {str(e)}")
+    
+    # コールバックを設定
+    task.callback = task_callback
     
     return jsonify({
         'task_id': task_id,
@@ -302,6 +385,15 @@ def delete_folder(folder_id):
         'message': 'フォルダが削除されました'
     })
 
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """設定情報の取得API"""
+    return jsonify({
+        'output_dir': OUTPUT_DIR,
+        'allowed_extensions': list(ALLOWED_EXTENSIONS),
+        'default_folders': DEFAULT_FOLDERS
+    })
+
 @app.route('/output/<path:filename>')
 def download_file(filename):
     """変換されたファイルのダウンロード"""
@@ -309,6 +401,59 @@ def download_file(filename):
     directory = os.path.dirname(filename)
     file = os.path.basename(filename)
     return send_from_directory(os.path.join(OUTPUT_DIR, directory), file)
+
+@app.route('/explore/<path:folder_path>')
+def explore_folder(folder_path):
+    """フォルダ内のファイル一覧を表示"""
+    try:
+        full_path = os.path.join(OUTPUT_DIR, folder_path)
+        
+        # パスのバリデーション（ディレクトリトラバーサル対策）
+        if not os.path.realpath(full_path).startswith(os.path.realpath(OUTPUT_DIR)):
+            return jsonify({'error': '無効なパスです'}), 400
+        
+        if not os.path.exists(full_path):
+            return jsonify({'error': 'フォルダが見つかりません'}), 404
+        
+        if not os.path.isdir(full_path):
+            return jsonify({'error': 'このパスはフォルダではありません'}), 400
+        
+        files = []
+        for item in os.listdir(full_path):
+            item_path = os.path.join(full_path, item)
+            is_dir = os.path.isdir(item_path)
+            
+            # 最終更新日時
+            modified_time = os.path.getmtime(item_path)
+            modified_date = datetime.fromtimestamp(modified_time).strftime('%Y-%m-%d %H:%M:%S')
+            
+            file_info = {
+                'name': item,
+                'is_directory': is_dir,
+                'path': os.path.join(folder_path, item).replace('\\', '/'),
+                'modified_date': modified_date
+            }
+            
+            # ファイルサイズ（ディレクトリの場合は0）
+            if not is_dir:
+                file_info['size'] = os.path.getsize(item_path)
+                
+                # ファイル拡張子
+                _, ext = os.path.splitext(item)
+                file_info['extension'] = ext[1:] if ext else ''
+            
+            files.append(file_info)
+        
+        # ディレクトリを先に、その後にファイルをアルファベット順で並べる
+        files.sort(key=lambda x: (not x['is_directory'], x['name'].lower()))
+        
+        return jsonify({
+            'path': folder_path,
+            'files': files
+        })
+    except Exception as e:
+        logger.exception(f"フォルダ探索エラー: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
@@ -327,5 +472,13 @@ def internal_server_error(error):
 
 
 if __name__ == '__main__':
-    print("Flask開発サーバーで起動しています。Uvicornで起動するには：python run.py")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # コマンドライン引数のパース
+    args = parse_arguments()
+    
+    # アプリケーションのセットアップ
+    setup_application(args.output_path)
+    
+    # サーバーの起動
+    print(f"Markitdown WebUI サーバーを起動しています。http://{args.host}:{args.port}/")
+    print(f"保存先ディレクトリ: {OUTPUT_DIR}")
+    app.run(debug=args.debug, host=args.host, port=args.port)

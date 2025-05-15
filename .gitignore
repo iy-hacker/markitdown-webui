@@ -17,4 +17,5 @@ old/*
 .venv/*
 temp/*
 output/*
+output_old/*
 site_image/*
